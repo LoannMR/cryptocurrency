@@ -1,0 +1,48 @@
+version: '3'
+
+services:
+  spark-master:
+    image: 'bitnami/spark:3.3.3'
+    environment:
+      - SPARK_MODE=master
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+    ports:
+      - '8079:8080' # changed to port 8079 because of conflict  
+      - '7077:7077'
+
+  spark-worker:
+    image: 'bitnami/spark:3.3.3'
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_MEMORY=1G
+    depends_on:
+      - spark-master
+  
+  spark-submitter:
+    build: 
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./src:/usr/src/app
+      - ivy-cache:/tmp/.ivy2
+    depends_on:
+      - spark-master
+    environment:
+      - SPARK_SUBMIT_OPTS=-Divy.home=/tmp/.ivy2
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+    # entrypoint: ["tail", "-f", "//dev//null"]
+
+networks:
+  default:
+    name: kafka-network
+    external: true
+      
+volumes:
+  ivy-cache:
+
+    

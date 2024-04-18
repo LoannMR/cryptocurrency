@@ -1,0 +1,5 @@
+confluent-kafka
+selenium
+chromedriver-autoinstaller
+python-dotenv
+faust
